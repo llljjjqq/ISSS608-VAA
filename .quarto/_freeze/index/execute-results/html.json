@@ -2,9 +2,7 @@
   "hash": "4c8643d940e25aa8f57b7fbbc1d0aa10",
   "result": {
     "markdown": "::: {.cell}\n\n:::\n\n---\ntitle: \"ISSS608-VAA\"\n---\n\n\nWelcome to **ISSS608 Visual Analytics and Applications**. In this website, you will find my coursework prepared for the course.\n",
-    "supporting": [
-      "index_files"
-    ],
+    "supporting": [],
     "filters": [
       "rmarkdown/pagebreak.lua"
     ],
