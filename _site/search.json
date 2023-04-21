@@ -7,20 +7,6 @@
     "text": "The code chunck below uses p_load() of pacman package to check if tidyverse packages are installed in the computer. If they are, then they will be launched into R.\n\npacman::p_load(tidyverse)\n\n\n\n\n\nexam_data <- read_csv(\"data/Exam_data.csv\")\n\nRows: 322 Columns: 7── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): ID, CLASS, GENDER, RACE\ndbl (3): ENGLISH, MATHS, SCIENCE\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "ISSS608-VAA",
-    "section": "",
-    "text": "Welcome to ISSS608 Visual Analytics and Applications. In this website, you will find my coursework prepared for the course."
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
     "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#data",
     "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#data",
     "title": "Hands_on Exercise 1",
@@ -68,5 +54,82 @@
     "title": "Hands_on Exercise 1",
     "section": "Essential Grammatical Elements in ggplot2: themes",
     "text": "Essential Grammatical Elements in ggplot2: themes\n\nWorking with theme\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_gray()\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_classic()\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_minimal()"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ISSS608-VAA",
+    "section": "",
+    "text": "Welcome to ISSS608 Visual Analytics and Applications. In this website, you will find my coursework prepared for the course."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html",
+    "title": "In_Class_Ex01",
+    "section": "",
+    "text": "pacman::p_load(tidyverse)\n\n\n\n\n\nexam_data <- read_csv(\"data/Exam_data.csv\")\n\nRows: 322 Columns: 7── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (4): ID, CLASS, GENDER, RACE\ndbl (3): ENGLISH, MATHS, SCIENCE\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design",
+    "title": "In_Class_Ex01",
+    "section": "The Original Design",
+    "text": "The Original Design\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar()"
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design",
+    "title": "In_Class_Ex01",
+    "section": "The Makeover Design",
+    "text": "The Makeover Design\n\nggplot(data=exam_data, \n       aes(x=reorder(RACE,RACE,\n                     function(x)-length(x)))) +\n  geom_bar() +\n  ylim(0,220) +\n  geom_text(stat=\"count\", \n      aes(label=paste0(..count.., \", \", \n      round(..count../sum(..count..)*100, 1), \"%\")),\n      vjust=-1) +\n  xlab(\"Race\") +\n  ylab(\"No. of\\nPupils\") +\n  theme(axis.title.y=element_text(angle = 0))\n\n\n\n\n\nexam_data %>%\n  mutate(RACE = fct_infreq(RACE)) %>%\n  ggplot(aes(x = RACE)) + \n  geom_bar()+\n  ylim(0,220) +\n  geom_text(stat=\"count\", \n      aes(label=paste0(..count.., \", \", \n      round(..count../sum(..count..)*100,\n            1), \"%\")),\n      vjust=-1) +\n  xlab(\"Race\") +\n  ylab(\"No. of\\nPupils\") +\n  theme(axis.title.y=element_text(angle = 0))"
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-1",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-1",
+    "title": "In_Class_Ex01",
+    "section": "The Original Design",
+    "text": "The Original Design\n\nggplot(data=exam_data, \n       aes(x = MATHS)) +\n  geom_histogram()  \n\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`."
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-1",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-1",
+    "title": "In_Class_Ex01",
+    "section": "The Makeover Design",
+    "text": "The Makeover Design\n\nggplot(data=exam_data, \n       aes(x= MATHS)) +\n  geom_histogram(bins=20, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  geom_vline(aes(xintercept=mean(MATHS, na.rm=T)),\n             color=\"red\", \n             linetype=\"dashed\", \n             size=1) +\n  geom_vline(aes(xintercept=median(MATHS, na.rm=T)),\n             color=\"grey30\",\n             linetype=\"dashed\", \n             size=1)"
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-2",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-2",
+    "title": "In_Class_Ex01",
+    "section": "The Original Design",
+    "text": "The Original Design\n\nggplot(data=exam_data, \n       aes(x = ENGLISH)) +\n  geom_histogram() +\n  facet_grid(~ GENDER)\n\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`."
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-2",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-2",
+    "title": "In_Class_Ex01",
+    "section": "The Makeover Design",
+    "text": "The Makeover Design\n\nd <- exam_data   \nd_bg <- d[, -3]  \n\nggplot(d, aes(x = ENGLISH, fill = GENDER)) +\n  geom_histogram(data = d_bg, fill = \"grey\", alpha = .5) +\n  geom_histogram(colour = \"black\") +\n  facet_wrap(~ GENDER) +\n  guides(fill = FALSE) +  \n  theme_bw()\n\nWarning: `guides(<scale> = FALSE)` is deprecated. Please use `guides(<scale> =\n\"none\")` instead.\n\n\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`."
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-3",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-original-design-3",
+    "title": "In_Class_Ex01",
+    "section": "The Original Design",
+    "text": "The Original Design\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           y=ENGLISH)) +\n  geom_point()"
+  },
+  {
+    "objectID": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-3",
+    "href": "In_Class_Ex/In_Class_Ex01/In_Class_Ex01.html#the-makeover-design-3",
+    "title": "In_Class_Ex01",
+    "section": "The Makeover Design",
+    "text": "The Makeover Design\n\nggplot(data=exam_data, \n       aes(x=MATHS, y=ENGLISH)) +\n  geom_point() +\n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100)) +\n  geom_hline(yintercept=50,\n             linetype=\"dashed\",\n             color=\"grey60\",\n             size=1) + \n  geom_vline(xintercept=50, \n             linetype=\"dashed\",\n             color=\"grey60\",\n             size=1)"
   }
 ]
