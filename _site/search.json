@@ -19,5 +19,54 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#data",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#data",
+    "title": "Hands_on Exercise 1",
+    "section": "Data",
+    "text": "Data\n\nggplot(data=exam_data)"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#aesthetic-mappings",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#aesthetic-mappings",
+    "title": "Hands_on Exercise 1",
+    "section": "Aesthetic mappings",
+    "text": "Aesthetic mappings\n\nggplot(data=exam_data, \n       aes(x= MATHS))"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#geom",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#geom",
+    "title": "Hands_on Exercise 1",
+    "section": "Geom",
+    "text": "Geom\n\nGeometric Objects: geom_bar\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar()\n\n\n\n\n\n\nGeometric Objects: geom_dotplot\n\nggplot(data=exam_data, \n       aes(x = MATHS)) +\n  geom_dotplot(dotsize = 0.5)\n\nBin width defaults to 1/30 of the range of the data. Pick better value with `binwidth`.\n\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x = MATHS)) +\n  geom_dotplot(binwidth=2.5,         \n               dotsize = 0.5) +      \n  scale_y_continuous(NULL,           \n                     breaks = NULL)  \n\n\n\n\n\n\nGeometric Objects: geom_histogram()\n\nggplot(data=exam_data, \n       aes(x = MATHS)) +\n  geom_histogram()       \n\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.\n\n\n\n\n\n\n\nModifying a geometric object by changing geom()\n\nggplot(data=exam_data, \n       aes(x= MATHS)) +\n  geom_histogram(bins=20,            \n                 color=\"black\",      \n                 fill=\"light blue\")  \n\n\n\n\n\n\nModifying a geometric object by changing aes()\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           fill = GENDER)) +\n  geom_histogram(bins=20, \n                 color=\"grey30\")\n\n\n\n\n\n\nGeometric Objects: geom-density()\n\nggplot(data=exam_data, \n       aes(x = MATHS)) +\n  geom_density()           \n\n\n\n\n\nggplot(data=exam_data, \n       aes(x = MATHS, \n           colour = GENDER)) +\n  geom_density()\n\n\n\n\n\n\nGeometric Objects: geom_boxplot\n\nggplot(data=exam_data, \n       aes(y = MATHS,       \n           x= GENDER)) +    \n  geom_boxplot()            \n\n\n\n\n\nggplot(data=exam_data, \n       aes(y = MATHS, \n           x= GENDER)) +\n  geom_boxplot(notch=TRUE)\n\n\n\n\n\n\nGeometric Objects: geom_violin\n\nggplot(data=exam_data, \n       aes(y = MATHS, \n           x= GENDER)) +\n  geom_violin()\n\n\n\n\n\n\nGeometric Objects: geom_point()\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           y=ENGLISH)) +\n  geom_point()            \n\n\n\n\n\n\ngeom objects can be combined\n\nggplot(data=exam_data, \n       aes(y = MATHS, \n           x= GENDER)) +\n  geom_boxplot() +                    \n  geom_point(position=\"jitter\", \n             size = 0.5)"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-stat",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-stat",
+    "title": "Hands_on Exercise 1",
+    "section": "Essential Grammatical Elements in ggplot2: stat",
+    "text": "Essential Grammatical Elements in ggplot2: stat\n\nWorking with stat()\n\nggplot(data=exam_data, \n       aes(y = MATHS, x= GENDER)) +\n  geom_boxplot()\n\n\n\n\n\n\nWorking with stat - the stat_summary() method\n\nggplot(data=exam_data, \n       aes(y = MATHS, x= GENDER)) +\n  geom_boxplot() +\n  stat_summary(geom = \"point\",       \n               fun.y=\"mean\",         \n               colour =\"red\",        \n               size=4)               \n\nWarning: `fun.y` is deprecated. Use `fun` instead.\n\n\n\n\n\n\n\nWorking with stat - the geom() method\n\nggplot(data=exam_data, \n       aes(y = MATHS, x= GENDER)) +\n  geom_boxplot() +\n  geom_point(stat=\"summary\",        \n             fun.y=\"mean\",           \n             colour =\"red\",          \n             size=4)          \n\nWarning: Ignoring unknown parameters: fun.y\n\n\nNo summary function supplied, defaulting to `mean_se()`\n\n\n\n\n\n\n\nAdding a best fit curve on a scatterplot\n\nggplot(data=exam_data, \n       aes(x= MATHS, y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(size=0.5)\n\n`geom_smooth()` using method = 'loess' and formula 'y ~ x'\n\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x= MATHS, \n           y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5)\n\n`geom_smooth()` using formula 'y ~ x'"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-facets",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-facets",
+    "title": "Hands_on Exercise 1",
+    "section": "Essential Grammatical Elements in ggplot2: Facets",
+    "text": "Essential Grammatical Elements in ggplot2: Facets\n\nWorking with facet_wrap()\n\nggplot(data=exam_data, \n       aes(x= MATHS)) +\n  geom_histogram(bins=20) +\n    facet_wrap(~ CLASS)\n\n\n\n\n\n\nfacet_grid() function\n\nggplot(data=exam_data, \n       aes(x= MATHS)) +\n  geom_histogram(bins=20) +\n    facet_grid(~ CLASS)"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-coordinates",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-coordinates",
+    "title": "Hands_on Exercise 1",
+    "section": "Essential Grammatical Elements in ggplot2: Coordinates",
+    "text": "Essential Grammatical Elements in ggplot2: Coordinates\n\nWorking with Coordinate\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar()\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip()\n\n\n\n\n\n\nChanging the y- and x-axis range\n\nggplot(data=exam_data, \n       aes(x= MATHS, y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, size=0.5)\n\n`geom_smooth()` using formula 'y ~ x'\n\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x= MATHS, y=ENGLISH)) +\n  geom_point() +\n  geom_smooth(method=lm, \n              size=0.5) +  \n  coord_cartesian(xlim=c(0,100),\n                  ylim=c(0,100))\n\n`geom_smooth()` using formula 'y ~ x'"
+  },
+  {
+    "objectID": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-themes",
+    "href": "Hands_on_Ex/Hands_on_Ex01/Hands_on_Ex01.html#essential-grammatical-elements-in-ggplot2-themes",
+    "title": "Hands_on Exercise 1",
+    "section": "Essential Grammatical Elements in ggplot2: themes",
+    "text": "Essential Grammatical Elements in ggplot2: themes\n\nWorking with theme\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_gray()\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_classic()\n\n\n\n\n\nggplot(data=exam_data, \n       aes(x=RACE)) +\n  geom_bar() +\n  coord_flip() +\n  theme_minimal()"
   }
 ]
