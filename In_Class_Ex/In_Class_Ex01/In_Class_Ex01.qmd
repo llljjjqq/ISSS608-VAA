@@ -31,7 +31,7 @@ ggplot(data=exam_data, aes(x=RACE)) +
     panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "white"))
 ```
 
-# Designing Data-drive Graphics for Analysis I 
+# Designing Data-drive Graphics for Analysis I
 
 ## The Original Design
 
@@ -74,7 +74,7 @@ exam_data %>%
   theme(axis.title.y=element_text(angle = 0))
 ```
 
-# Designing Data-drive Graphics for Analysis II 
+# Designing Data-drive Graphics for Analysis II
 
 ## The Original Design
 
