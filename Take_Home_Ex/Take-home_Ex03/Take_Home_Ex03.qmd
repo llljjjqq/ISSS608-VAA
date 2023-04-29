@@ -1,0 +1,510 @@
+---
+title: "Take Home Exercise 3"
+author: "Liu Jiaqi"
+date: "6/18/2023"
+format: html
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: auto
+editor: visual
+---
+
+# Kickstarter
+
+## Getting Started
+
+The code chunk below will be used to install and load the necessary R packages to meet the data preparation, data wrangling, data analysis and visualisation needs.
+
+```{r}
+pacman::p_load(jsonlite, tidygraph, ggraph, 
+               visNetwork, graphlayouts, ggforce, 
+               skimr, tidytext, tidyverse,
+               ggplot2,plotly,ggiraph)
+```
+
+## Data Import
+
+In the code chunk below, `fromJSON()` of **jsonlite** package is used to import *MC3.json* into R environment.
+
+```{r}
+mc3_data <- fromJSON("data/MC3.json")
+```
+
+The output is called *mc3_data*. It is a large list R object.
+
+### Extracting edges
+
+The code chunk below will be used to extract the *links* data.frame of *mc3_data* and save it as a tibble data.frame called *mc3_edges*.
+
+```{r}
+mc3_edges <- as_tibble(mc3_data$links) %>% 
+  distinct() %>%
+  mutate(source = as.character(source),
+         target = as.character(target),
+         type = as.character(type)) %>%
+  group_by(source, target, type) %>%
+    summarise(weights = n()) %>%
+  filter(source!=target) %>%
+  ungroup()
+```
+
+::: callout-note
+### Things to learn from the code chunk above
+
+-   `distinct()` is used to ensure that there will be no duplicated records.
+-   `mutate()` and `as.character()` are used to convert the field data type from list to character.
+-   `group_by()` and `summarise()` are used to count the number of unique links.
+-   the `filter(source!=target)` is to ensure that no record with similar source and target.
+:::
+
+### Extracting nodes
+
+The code chunk below will be used to extract the *nodes* data.frame of *mc3_data* and save it as a tibble data.frame called *mc3_nodes*.
+
+```{r}
+mc3_nodes <- as_tibble(mc3_data$nodes) %>%
+  mutate(country = as.character(country),
+         id = as.character(id),
+         product_services = as.character(product_services),
+         revenue_omu = as.numeric(as.character(revenue_omu)),
+         type = as.character(type)) %>%
+  select(id, country, type, revenue_omu, product_services)
+```
+
+::: callout-note
+### Things to learn from the code chunk above
+
+-   `mutate()` and `as.character()` are used to convert the field data type from list to character.
+-   To convert *revenue_omu* from list data type to numeric data type, we need to convert the values into character first by using `as.character()`. Then, `as.numeric()` will be used to convert them into numeric data type.\
+-   `select()` is used to re-organise the order of the fields.
+:::
+
+## Initial Data Exploration
+
+### Exploring the edges data frame
+
+In the code chunk below, [`skim()`](https://docs.ropensci.org/skimr/reference/skim.html) of [**skimr**](https://docs.ropensci.org/skimr/index.html) package is used to display the summary statistics of *mc3_edges* tibble data frame.
+
+```{r}
+skim(mc3_edges)
+```
+
+The report above reveals that there is not missing values in all fields.
+
+In the code chunk below, `datatable()` of DT package is used to display mc3_edges tibble data frame as an interactive table on the html document.
+
+```{r}
+DT::datatable(mc3_edges)
+
+```
+
+```{r}
+ggplot(data = mc3_edges,
+       aes(x = type)) +
+  geom_bar()
+```
+
+## Initial Network Visualisation and Analysis
+
+### Building network model with tidygraph
+
+```{r}
+id1 <- mc3_edges %>%
+  select(source) %>%
+  rename(id = source)
+id2 <- mc3_edges %>%
+  select(target) %>%
+  rename(id = target)
+mc3_nodes1 <- rbind(id1, id2) %>%
+  distinct() %>%
+  left_join(mc3_nodes,
+            unmatched = "drop")
+```
+
+```{r}
+mc3_graph <- tbl_graph(nodes = mc3_nodes1,
+                       edges = mc3_edges,
+                       directed = FALSE) %>%
+  mutate(betweenness_centrality = centrality_betweenness(),
+         closeness_centrality = centrality_closeness())
+```
+
+```{r}
+mc3_graph %>%
+  filter(betweenness_centrality >= 100000) %>%
+ggraph(layout = "fr") +
+  geom_edge_link(aes(alpha=0.5)) +
+  geom_node_point(aes(
+    size = betweenness_centrality,
+    colors = "lightblue",
+    alpha = 0.5)) +
+  scale_size_continuous(range=c(1,10))+
+  theme_graph()
+```
+
+## Exploring the nodes data frame
+
+In the code chunk below, [`skim()`](https://docs.ropensci.org/skimr/reference/skim.html) of [**skimr**](https://docs.ropensci.org/skimr/index.html) package is used to display the summary statistics of *mc3_nodes* tibble data frame.
+
+```{r}
+skim(mc3_nodes)
+```
+
+The report above reveals that there is no missing values in all fields.
+
+In the code chunk below, `datatable()` of DT package is used to display mc3_nodes tibble data frame as an interactive table on the html document.
+
+```{r}
+DT::datatable(mc3_nodes)
+
+```
+
+```{r}
+ggplot(data = mc3_nodes,
+       aes(x = type)) +
+  geom_bar()
+```
+
+## Text Sensing with tidytext
+
+In this section, you will learn how to perform basic text sensing using appropriate functions of [**tidytext**](https://juliasilge.github.io/tidytext/index.html) package.
+
+### Simple word count
+
+The code chunk below calculates number of times the word *fish* appeared in the field *product_services*.
+
+```{r}
+mc3_nodes %>% 
+    mutate(n_fish = str_count(product_services, "fish")) 
+```
+
+### Tokenisation
+
+The word tokenisation have different meaning in different scientific domains. In text sensing, **tokenisation** is the process of breaking up a given text into units called **tokens**. Tokens can be individual words, phrases or even whole sentences. In the process of tokenisation, some characters like punctuation marks may be discarded. The tokens usually become the input for the processes like parsing and text mining.
+
+In the code chunk below, [`unnest_token()`](https://juliasilge.github.io/tidytext/reference/unnest_tokens.html) of tidytext is used to split text in *product_services* field into words.
+
+```{r}
+token_nodes <- mc3_nodes %>%
+  unnest_tokens(word, 
+                product_services)
+```
+
+The two basic arguments to `unnest_tokens()` used here are column names. First we have the output column name that will be created as the text is unnested into it (*word*, in this case), and then the input column that the text comes from (*product_services*, in this case).
+
+::: callout-note
+-   By default, punctuation has been stripped. (Use the *to_lower = FALSE* argument to turn off this behavior).
+-   By default, `unnest_tokens()` converts the tokens to lowercase, which makes them easier to compare or combine with other datasets. (Use the *to_lower = FALSE* argument to turn off this behavior).
+:::
+
+Now we can visualise the words extracted by using the code chunk below.
+
+```{r}
+token_nodes %>%
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(x = "Count",
+      y = "Unique words",
+      title = "Count of unique words found in product_services field")
+```
+
+The bar chart reveals that the unique words contains some words that may not be useful to use. For instance "a" and "to". In the word of text mining we call those words **stop words**. You want to remove these words from your analysis as they are fillers used to compose a sentence.
+
+### Removing stopwords
+
+Lucky for use, the tidytext package has a function called [`stop_words`](https://juliasilge.github.io/tidytext/reference/stop_words.html) that will help us clean up stop words.
+
+Let's give this a try next!
+
+```{r}
+stopwords_removed <- token_nodes %>% 
+  anti_join(stop_words)
+```
+
+::: callout-note
+There are two processes:
+
+-   Load the stop_words data included with tidytext. This data is simply a list of words that you may want to remove in a natural language analysis.
+-   Then `anti_join()` of dplyr package is used to remove all stop words from the analysis.
+:::
+
+Now we can visualise the words extracted by using the code chunk below.
+
+```{r}
+stopwords_removed %>%
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(x = "Count",
+      y = "Unique words",
+      title = "Count of unique words found in product_services field")
+```
+
+::: callout-note
+All the stop words disappears!
+:::
+
+# Take Home Exercise
+
+In this exercise, I'll try to identify companies involved in IUU fishing based on their business organizational structures as it is mentioned in the MC3 challenge write up that such companies usually have abnormal structures.
+
+## Apporach 1: find companies registered in more than 2 countries.
+
+A normal fishing company should only be registered in 1 or 2 countries (country that it imports fish from and country that it exports fish to); so if a company is registered in more than 2 companies, it could be a suspect of IUU fishing.
+
+Below code chunk is to select companies that are registered in more than 2 countries and make it into a datatable for easy reference.
+
+```{r}
+mc3_nodes2 <- mc3_nodes1
+mc3_edges2 <- mc3_edges
+
+mc3_nodes2_agg <- mc3_nodes2 %>%
+  filter(type == "Company") %>%
+  select(id, country) %>%
+  distinct()%>%
+  group_by(id) %>%
+    summarise(Weight = n()) %>%
+  filter(Weight > 2) %>%
+  ungroup()
+
+mc3_nodes2_mt3 <- mc3_nodes2[mc3_nodes2$id %in% mc3_nodes2_agg$id, c("id", "country", "type")]%>%
+  filter(type == "Company")%>%
+  select(id, country)
+mc3_nodes2_mt3$id <- gsub("'", "", mc3_nodes2_mt3$id)
+```
+
+```{r}
+DT::datatable(mc3_nodes2_mt3, class= "compact")
+```
+
+Below code chunk is a visual representation of the companies and the countries that they are registered in as an interactive histodot graph. These companies are suspicious due to abnormal business behaviour and should be investigated (e.g. Aqua Aura SE Marine life which was registered in 9 countries).
+
+```{r}
+mc3_nodes2_mt3$tooltip <- c(paste0(     
+  "Company = ", mc3_nodes2_mt3$id)) 
+
+p <- ggplot(data=mc3_nodes2_mt3, 
+       aes(x = country)) +
+  geom_dotplot_interactive(           
+    aes(data_id = id, tooltip = mc3_nodes2_mt3$tooltip),             
+    stackgroups = TRUE,               
+    binwidth = 0.3,                        
+    method = "histodot") +  
+  scale_y_continuous(NULL,               
+                     breaks = NULL) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Company registered in more than 2 countries") +
+  theme(plot.margin = margin(1, 1, 1, 20))
+girafe(                                  
+  ggobj = p,                             
+  width_svg = 6,                         
+  height_svg = 6*0.618                      
+)          
+```
+
+## Approach 2: find companies with abnormal number of beneficial owners and company contacts.
+
+Below code chunk is to calculate and select companies with more than 1 beneficial owners and company contacts. It is then made into a datatable for easy reference.
+
+```{r}
+mc3_nodes2_agg2 <- mc3_nodes2 %>%
+  group_by(id) %>%
+  summarize(max_revenue = max(revenue_omu))
+
+mc3_edges2_agg <- mc3_edges2 %>%
+  group_by(source) %>%
+  summarize(
+    num_company_contacts = sum(type == 'Company Contacts', na.rm = TRUE),
+    num_beneficial_owner = sum(type == 'Beneficial Owner', na.rm = TRUE)
+  ) %>%
+  filter(num_company_contacts > 1, num_beneficial_owner > 1) %>%
+  ungroup()
+
+mc3_edges2_agg1 <- left_join(mc3_edges2_agg, mc3_nodes2_agg2, by = c("source" = "id")) %>%
+  select(source, num_company_contacts, num_beneficial_owner, max_revenue)%>%
+  mutate_all(~ replace(., is.na(.), 0))
+
+mc3_edges2_agg1 <- mc3_edges2_agg1 %>% filter(source != 'Mar de la Luna LLC')
+```
+
+```{r}
+DT::datatable(mc3_edges2_agg1, class= "compact")
+```
+
+Sum of number of beneficial owners and company contacts is then plot against max revenue of the company (taking the max as some companies declare several different revenues). If the max revenue is high then it might make more sense for the company to have a few more beneficial owners or company contacts. Those with relatively low revenue but many beneficial owners and company contacts does not make much sense and could be suspicious of IUU fishing. Aqua Aura SE Marine Life is flagged out in this graph again with 33 beneficial owners and 8 company contacts, although the revenue is 0 (could be either NA or 0).
+
+```{r}
+fig <- plot_ly(mc3_edges2_agg1, 
+               x = ~num_beneficial_owner+num_company_contacts, 
+               y = ~max_revenue, 
+               text = ~paste(source,"<br>"
+                             ,"Num Com Contacts:", num_company_contacts,"<br>"
+                             ,"Num Ben Owners:", num_beneficial_owner,"<br>"
+                             ,"Max Registered Revenue", round(max_revenue/1000, digits = 0), "k"), 
+               type = 'scatter', 
+               mode = 'markers'
+              )
+
+fig <- fig %>% layout(title = 'Companies with >1 company contact and >1 beneficial owner',
+                      xaxis = list(title = 'Number of Company Contacts + Number of Beneficial Owners'),
+                      yaxis = list(title = 'Max Revenue')
+                     )
+
+fig
+```
+
+## Approach 3: find beneficial owners with high betweeness centrality.
+
+Generally, a beneficial owner should be for 1 company only and should have very low betweenness centrality (i.e. not much influence over the flow of information). As such, those with very high betweenness centrality could be suspicious of wrongdoing.
+
+Below code chunk is to create a graph and calculate centrality measures for each node. Only those with betweenness centrality \> 100000 are filtered and selected.
+
+```{r}
+mc3_edges3 <- mc3_edges
+```
+
+```{r}
+id1_2 <- mc3_edges3 %>%
+  select(source) %>%
+  rename(id = source)
+id2_2 <- mc3_edges3 %>%
+  select(target) %>%
+  rename(id = target)
+mc3_nodes3 <- rbind(id1_2, id2_2) %>%
+  distinct() %>%
+  left_join(mc3_nodes,
+            unmatched = "drop")
+```
+
+```{r}
+mc3_graph_2 <- tbl_graph(nodes = mc3_nodes3,
+                       edges = mc3_edges3,
+                       directed = FALSE) %>%
+  mutate(betweenness_centrality = centrality_betweenness(),
+         closeness_centrality = centrality_closeness(),
+         degree_centrality = centrality_degree())%>%
+  filter(betweenness_centrality >= 100000)
+```
+
+To identify the beneficial owners, 'type' is added to the node df which would be used as 'group' in the interactive visNetwork. 7 beneficial owners with high betweenness centrality are flagged in the graph.
+
+```{r}
+mc3_edges_df <- mc3_graph_2 %>%
+  activate(edges) %>%
+  as.tibble()
+```
+
+```{r}
+mc3_nodes_df <- mc3_graph_2 %>%
+  activate(nodes) %>%
+  as.tibble() %>%
+  rename(label = id) %>%
+  mutate(id=row_number()) %>%
+  select(id, label)
+
+subquery <- mc3_nodes %>%
+  group_by(id) %>%
+  summarize(type = first(type))
+mc3_nodes_df <- mc3_nodes_df %>%
+  left_join(subquery, by = c("label" = "id"))%>%
+  select(id, label, type)%>%
+  rename(group = type)
+```
+
+```{r}
+visNetwork(mc3_nodes_df,
+           mc3_edges_df) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(smooth = list(enabled = TRUE))%>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
+
+## Apporach 4: find fishing companies with high degree centrality.
+
+Fishing companies with too many connections to other companies could also be suspicious. Many companies involved in IUU fishing are engaged in transshipment where they unload cargo from one vessel and loading them into another (from another company). High degree centrality could be an indicator of transshipment activities.
+
+First, fishing / non-fishing companies are categories through the product / services description. Top 30 words in terms of word count are identified and those that are fishing-related are manually selected. If the product / services description of a company contains one or more of these words, then they are labelled as 'fishing' companies, else 'non-fishing'.
+
+```{r}
+stopwords_removed2 <- stopwords_removed %>% mutate(word = ifelse(word %in% c("0", "unknown", "character"), NA, word))
+
+stopwords_removed2 <- stopwords_removed2[complete.cases(stopwords_removed2$word), ]
+```
+
+```{r}
+stopwords_removed2 %>%
+  count(word, sort = TRUE) %>%
+  top_n(30) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(x = "Count",
+      y = "Unique words",
+      title = "Count of unique words found in product_services field")
+```
+
+```{r}
+stopwords_removed2 %>%
+  count(word, sort = TRUE) %>%
+  top_n(30) %>%
+  mutate(word = reorder(word, n))
+```
+
+```{r}
+fishing_related <- distinct(stopwords_removed2[stopwords_removed2$word %in% c('fish', 'seafood', 'frozen', 'food', 'fresh', 'salmon', 'tuna', 'shrimp', 'shellfish', 'squid', 'seafoods'), "id"])
+```
+
+```{r}
+mc3_graph_3 <- tbl_graph(nodes = mc3_nodes3,
+                       edges = mc3_edges3,
+                       directed = FALSE) %>%
+  mutate(betweenness_centrality = centrality_betweenness(),
+         closeness_centrality = centrality_closeness(),
+         degree_centrality = centrality_degree())%>%
+  filter(degree_centrality >= 20)
+```
+
+```{r}
+mc3_edges_df3 <- mc3_graph_3 %>%
+  activate(edges) %>%
+  as.tibble()
+```
+
+```{r}
+mc3_nodes_df3 <- mc3_graph_3 %>%
+  activate(nodes) %>%
+  as.tibble() %>%
+  rename(label = id) %>%
+  mutate(id=row_number()) %>%
+  select(id, label, degree_centrality) %>%
+  rename(value = degree_centrality)
+
+mc3_nodes_df3$group <- ifelse(mc3_nodes_df3$label %in% fishing_related$id, "fishing", "non-fishing")
+```
+
+Next a graph for those with high degree centrality is plotted and 19 'fishing' companies that could be involved in IUU fishing are identified.
+
+```{r}
+visNetwork(mc3_nodes_df3,
+           mc3_edges_df3) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(smooth = list(enabled = TRUE))%>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
+
+Companies that could be involved in IUU fishing are identified through 4 different approaches. Investigations should be conducted for these companies, especially those that are flagged in more than 1 apporaches, e.g. Aqua Aura SE Marine Life.
